@@ -19,7 +19,7 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Clean Build and Compile
+    - name: Multi-Project Target Build
       run: |
         echo "Locating the exact Android source path..."
         if [ -d "./android" ]; then
@@ -33,15 +33,16 @@ jobs:
         echo "Patching system configuration limits..."
         find . -name "AndroidManifest.xml" -exec sed -i 's/mediaProcessing/mediaPlayback/g' {} +
 
-        echo "Forcing build compilation fallback..."
+        echo "Forcing sub-project module compilation..."
         if [ -f "./gradlew" ]; then
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
+          # TARGET FIX: Direct assemble command explicitly onto the inner app module sub-project
+          ./gradlew :app:assembleDebug --no-daemon
         else
           sudo apt-get update && sudo apt-get install -y gradle
           gradle wrapper --gradle-version 8.4
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
+          ./gradlew :app:assembleDebug --no-daemon
         fi
 
     - name: Find and Upload Finished APK Artifact
