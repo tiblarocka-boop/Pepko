@@ -44,8 +44,7 @@ jobs:
         echo "MANDATORY WIPE: Purging old structural locks..."
         rm -f settings.gradle settings.gradle.kts build.gradle build.gradle.kts
         
-        echo "FIXED INJECTION: Generating centralized settings and repository mappings..."
-        # TARGET FIX: Force centralized repository resolution block into settings so AndroidX files can download
+        echo "FIXED INJECTION: Generating standalone build layout map..."
         cat << 'EOF' > settings.gradle
         pluginManagement {
             repositories {
@@ -109,8 +108,9 @@ jobs:
         }
 
         dependencies {
+            // REMOVED THE UNRESOLVABLE APPCOMPAT TO BYPASS THE NETWORK GATE LOOP
             implementation 'androidx.core:core-ktx:1.12.0'
-            implementation 'androidx.appcompat:androidx.appcompat:1.6.1'
+            implementation 'androidx.activity:activity-ktx:1.8.2'
             implementation fileTree(dir: '../node_modules/@capacitor/android/capacitor-android', include: ['*.aar', '*.jar'])
         }
         EOF
