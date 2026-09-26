@@ -29,10 +29,10 @@ jobs:
         echo "Ensuring baseline Gradle infrastructure is completely present..."
         sudo apt-get update && sudo apt-get install -y gradle
         
-        # FIXED: Swapped out modern --dsl tag for classic, backward-compatible --build-script-dsl flag
+        # BULLEPROOF UPDATE: Stripped all DSL options so legacy Gradle versions initialize safely without syntax errors
         if [ ! -f "settings.gradle" ] && [ ! -f "settings.gradle.kts" ]; then
           echo "Empty root layout detected. Initializing clean build shell..."
-          gradle init --type basic --build-script-dsl kotlin --project-name Pepko --non-interactive
+          gradle init --type basic --project-name Pepko --non-interactive
         fi
 
         echo "Re-generating fresh Gradle Wrapper assets..."
