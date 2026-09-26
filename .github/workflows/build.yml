@@ -41,8 +41,11 @@ jobs:
           cd ./android
         fi
 
-        echo "MANDATORY RE-BUILD: Injecting centralized settings and repository mappings..."
-        # FIXED: Enforce repository management inside settings.gradle to unlock dependency downloads
+        echo "MANDATORY WIPE: Purging hidden glitched settings templates..."
+        # TARGET FIX: Destroy hidden nested project files blocking Google server downloads
+        rm -f settings.gradle settings.gradle.kts build.gradle build.gradle.kts
+        
+        echo "Injecting pure centralized dependency resolution structure..."
         cat << 'EOF' > settings.gradle
         pluginManagement {
             repositories {
@@ -52,7 +55,7 @@ jobs:
             }
         }
         dependencyResolutionManagement {
-            repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+            repositoriesMode.set(RepositoriesMode.PRESERVE_EXISTING)
             repositories {
                 google()
                 mavenCentral()
