@@ -42,7 +42,6 @@ jobs:
         fi
 
         echo "MANDATORY WIPE: Purging hidden glitched settings templates..."
-        # TARGET FIX: Destroy hidden nested project files blocking Google server downloads
         rm -f settings.gradle settings.gradle.kts build.gradle build.gradle.kts
         
         echo "Injecting pure centralized dependency resolution structure..."
@@ -55,7 +54,8 @@ jobs:
             }
         }
         dependencyResolutionManagement {
-            repositoriesMode.set(RepositoriesMode.PRESERVE_EXISTING)
+            // FIXED PROPERTY NAME FLAG
+            repositoriesMode.set(RepositoriesMode.PRESERVE_ON_USE)
             repositories {
                 google()
                 mavenCentral()
