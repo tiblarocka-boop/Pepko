@@ -1,1 +1,55 @@
+name: Build Pepko Equalizer APK
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Source Code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Find, Patch and Build Android Project
+      run: |
+        echo "Searching for the folder containing settings.gradle or build.gradle..."
+        TARGET_DIR=$(find . -name "settings.gradle" -o -name "settings.gradle.kts" | head -n 1 | xargs dirname)
+        
+        if [ -z "$TARGET_DIR" ] || [ "$TARGET_DIR" = "." ]; then
+          TARGET_DIR="."
+        fi
+        
+        echo "Injecting mandatory AndroidX flags into properties..."
+        echo "android.useAndroidX=true" >> "$TARGET_DIR/gradlew.properties"
+        echo "android.useAndroidX=true" >> "$TARGET_DIR/gradle.properties"
+        
+        echo "Patching AndroidManifest foregroundServiceType version mapping mismatch..."
+        find . -name "AndroidManifest.xml" -exec sed -i 's/mediaProcessing/mediaPlayback/g' {} +
+        
+        echo "Found Android project files inside subfolder: $TARGET_DIR"
+        cd "$TARGET_DIR"
+        
+        if [ -f "./gradlew" ]; then
+          chmod +x gradlew
+          ./gradlew assembleDebug
+        else
+          gradle assembleDebug
+        fi
+
+    - name: Find and Upload Finished APK Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Pepko-Equalizer-APK
+        path: |
+          **/build/outputs/apk/debug/*.apk
+          **/build/outputs/apk/release/*.apk
 
