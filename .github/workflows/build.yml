@@ -48,7 +48,6 @@ jobs:
         find . -name "AndroidManifest.xml" -exec sed -i 's/mediaProcessing/mediaPlayback/g' {} \;
         
         echo "Applying file safety wrappers..."
-        # FIXED TERMINAL SYNTAX: Replaced '+' with '\;' to process files without terminal conflicts
         find . -name "*.kt" -exec sed -i 's/\.enabled =/.enabled =/g' {} \;
         find . -name "*.kt" -exec sed -i 's/effect\.enabled = true/try { effect.enabled = true } catch(e: Exception) {}/g' {} \;
         find . -name "*.kt" -exec sed -i 's/it\.enabled = false/try { it.enabled = false } catch(e: Exception) {}/g' {} \;
@@ -59,7 +58,10 @@ jobs:
         fi
         
         chmod +x gradlew
-        ./gradlew :app:assembleDebug --no-daemon || ./gradlew assembleDebug --no-daemon || ./gradlew assemble --no-daemon
+        
+        echo "Executing multi-project sub-module application bundle assembly..."
+        # TARGET FIX: Bypass empty root containers by forcing compilation directly inside the inner app project module
+        ./gradlew :app:assembleDebug --no-daemon
 
     - name: Find and Upload Finished APK Artifact
       uses: actions/upload-artifact@v4
