@@ -44,22 +44,9 @@ jobs:
         echo "MANDATORY WIPE: Purging old project configurations..."
         rm -f settings.gradle settings.gradle.kts build.gradle build.gradle.kts
         
-        echo "Injecting pure centralized dependency resolution structure..."
+        echo "Injecting pure centralized settings script..."
+        # FIXED: Removed the entire broken dependency management properties block entirely
         cat << 'EOF' > settings.gradle
-        pluginManagement {
-            repositories {
-                google()
-                mavenCentral()
-                gradlePluginPortal()
-            }
-        }
-        dependencyResolutionManagement {
-            repositoriesMode.set(RepositoriesMode.PRESERVE_ON_USE)
-            repositories {
-                google()
-                mavenCentral()
-            }
-        }
         rootProject.name = 'Pepko'
         EOF
         
@@ -77,6 +64,11 @@ jobs:
 
         apply plugin: 'com.android.application'
         apply plugin: 'kotlin-android'
+
+        repositories {
+            google()
+            mavenCentral()
+        }
 
         android {
             namespace 'com.fatyliser.eq'
@@ -98,7 +90,6 @@ jobs:
         }
 
         dependencies {
-            // FIXED DEPENDENCIES: Stripped problematic unresolvable external libraries
             implementation 'androidx.core:core-ktx:1.12.0'
             implementation fileTree(dir: '../node_modules/@capacitor/android/capacitor-android', include: ['*.aar', '*.jar'])
         }
