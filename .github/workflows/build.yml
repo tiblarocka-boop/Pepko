@@ -44,10 +44,26 @@ jobs:
         echo "MANDATORY WIPE: Purging old structural locks..."
         rm -f settings.gradle settings.gradle.kts build.gradle build.gradle.kts
         
-        echo "FIXED INJECTION: Generating official standalone Android build layout map..."
-        # Create settings file mapping the project directly as a standard standalone app module
-        echo "include ':'" > settings.gradle
-        echo "rootProject.name = 'Pepko'" >> settings.gradle
+        echo "FIXED INJECTION: Generating centralized settings and repository mappings..."
+        # TARGET FIX: Force centralized repository resolution block into settings so AndroidX files can download
+        cat << 'EOF' > settings.gradle
+        pluginManagement {
+            repositories {
+                google()
+                mavenCentral()
+                gradlePluginPortal()
+            }
+        }
+        dependencyResolutionManagement {
+            repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+            repositories {
+                google()
+                mavenCentral()
+            }
+        }
+        include ':'
+        rootProject.name = 'Pepko'
+        EOF
         
         cat << 'EOF' > build.gradle
         buildscript {
@@ -63,11 +79,6 @@ jobs:
 
         apply plugin: 'com.android.application'
         apply plugin: 'kotlin-android'
-
-        repositories {
-            google()
-            mavenCentral()
-        }
 
         android {
             namespace 'com.fatyliser.eq'
