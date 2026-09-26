@@ -26,8 +26,8 @@ jobs:
 
         echo "Force-creating missing layout configurations directly in the workspace root..."
         if [ ! -f "settings.gradle" ] && [ ! -f "settings.gradle.kts" ]; then
-          # Force a fresh project initialization bypassing folder locks
-          gradle init --type basic --project-name Pepko --non-interactive
+          # FIXED: Completely removed the --project-name argument for universal legacy compatibility
+          gradle init --type basic --non-interactive
         fi
 
         echo "Re-generating fresh Gradle Wrapper assets..."
