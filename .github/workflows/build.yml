@@ -52,6 +52,8 @@ jobs:
                 google()
                 mavenCentral()
                 maven { url "https://gradle.org" }
+                // TARGET FIX: Add Ionic's official Maven CDN repository fallback mirror
+                maven { url "https://ionicframework.com" }
             }
         }
 
