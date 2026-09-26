@@ -29,10 +29,10 @@ jobs:
         echo "Ensuring baseline Gradle infrastructure is completely present..."
         sudo apt-get update && sudo apt-get install -y gradle
         
-        # MANDATORY OVERRIDE: If settings.gradle is broken or missing, force initialization
+        # FIXED: Swapped out modern --dsl tag for classic, backward-compatible --build-script-dsl flag
         if [ ! -f "settings.gradle" ] && [ ! -f "settings.gradle.kts" ]; then
           echo "Empty root layout detected. Initializing clean build shell..."
-          gradle init --type basic --dsl kotlin --package com.fatyliser.eq --project-name Pepko --non-interactive
+          gradle init --type basic --build-script-dsl kotlin --project-name Pepko --non-interactive
         fi
 
         echo "Re-generating fresh Gradle Wrapper assets..."
