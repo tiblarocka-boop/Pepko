@@ -41,8 +41,25 @@ jobs:
           cd ./android
         fi
 
-        echo "MANDATORY RE-BUILD: Injecting explicit base project files on the fly..."
-        echo "rootProject.name = 'Pepko'" > settings.gradle
+        echo "MANDATORY RE-BUILD: Injecting centralized settings and repository mappings..."
+        # FIXED: Enforce repository management inside settings.gradle to unlock dependency downloads
+        cat << 'EOF' > settings.gradle
+        pluginManagement {
+            repositories {
+                google()
+                mavenCentral()
+                gradlePluginPortal()
+            }
+        }
+        dependencyResolutionManagement {
+            repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+            repositories {
+                google()
+                mavenCentral()
+            }
+        }
+        rootProject.name = 'Pepko'
+        EOF
         
         cat << 'EOF' > build.gradle
         buildscript {
@@ -58,12 +75,6 @@ jobs:
 
         apply plugin: 'com.android.application'
         apply plugin: 'kotlin-android'
-
-        // FIXED REPOSITORY BLOCK STRUCTURE
-        repositories {
-            google()
-            mavenCentral()
-        }
 
         android {
             namespace 'com.fatyliser.eq'
