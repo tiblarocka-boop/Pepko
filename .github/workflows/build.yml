@@ -29,10 +29,10 @@ jobs:
         echo "Ensuring baseline Gradle infrastructure is completely present..."
         sudo apt-get update && sudo apt-get install -y gradle
         
-        # BULLEPROOF UPDATE: Stripped all DSL options so legacy Gradle versions initialize safely without syntax errors
+        # FIXED: Removed all arguments except the baseline type flag so legacy Gradle initializes smoothly
         if [ ! -f "settings.gradle" ] && [ ! -f "settings.gradle.kts" ]; then
           echo "Empty root layout detected. Initializing clean build shell..."
-          gradle init --type basic --project-name Pepko --non-interactive
+          gradle init --type basic
         fi
 
         echo "Re-generating fresh Gradle Wrapper assets..."
