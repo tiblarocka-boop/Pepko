@@ -52,6 +52,10 @@ jobs:
         find . -name "*.kt" -exec sed -i 's/effect\.enabled = true/try { effect.enabled = true } catch(e: Exception) {}/g' {} \;
         find . -name "*.kt" -exec sed -i 's/it\.enabled = false/try { it.enabled = false } catch(e: Exception) {}/g' {} \;
         
+        echo "MANDATORY FIX: Forcing explicit standalone module structure linkage..."
+        echo "include ':'" > settings.gradle
+        echo "rootProject.name = 'android'" >> settings.gradle
+        
         if [ ! -f "./gradlew" ]; then
           echo "Local compiler wrapper missing. Re-generating fresh binaries..."
           gradle wrapper --gradle-version 8.4
@@ -59,10 +63,9 @@ jobs:
         
         chmod +x gradlew
         
-        echo "Executing multi-project sub-module application bundle assembly..."
-        # TARGET FIX: Bypass empty root containers by forcing compilation directly inside the inner app project module
-        ./gradlew :app:assembleDebug --no-daemon
-
+        echo "Executing standalone application wrapper compilation..."
+        ./gradlew assembleDebug --no-daemon || ./gradlew assemble --no-daemon
+        
     - name: Find and Upload Finished APK Artifact
       uses: actions/upload-artifact@v4
       with:
