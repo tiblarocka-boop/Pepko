@@ -39,6 +39,7 @@ jobs:
             repositories {
                 google()
                 mavenCentral()
+                maven { url "https://gradle.org" }
             }
             dependencies {
                 classpath 'com.android.tools.build:gradle:8.2.2'
@@ -50,6 +51,7 @@ jobs:
             repositories {
                 google()
                 mavenCentral()
+                maven { url "https://gradle.org" }
             }
         }
 
@@ -101,7 +103,7 @@ jobs:
         echo "Patching system configuration limits inside manifest files..."
         find . -name "AndroidManifest.xml" -exec sed -i 's/mediaProcessing/mediaPlayback/g' {} +
 
-        echo "Executing explicit hardware deployment binaries compilation via enforced Gradle 8.4..."
+        echo "Executing explicit hardware deployment binaries compilation..."
         gradle assembleDebug --no-daemon
 
     - name: Find and Upload Finished APK Artifact
