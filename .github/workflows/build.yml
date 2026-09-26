@@ -19,30 +19,30 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Absolute Workspace Initialization and Build
+    - name: Direct Android Native Build Execution
       run: |
-        echo "Ensuring baseline global Gradle tools are completely present..."
-        sudo apt-get update && sudo apt-get install -y gradle
-
-        echo "Force-creating missing layout configurations directly in the workspace root..."
-        if [ ! -f "settings.gradle" ] && [ ! -f "settings.gradle.kts" ]; then
-          # FIXED: Stripped all parameters completely to support oldest legacy versions
-          gradle init
+        echo "Determining project folder layout target..."
+        if [ -d "./android" ]; then
+          cd ./android
         fi
 
-        echo "Re-generating fresh Gradle Wrapper assets..."
-        gradle wrapper --gradle-version 8.4
-        chmod +x ./gradlew
-
-        echo "Injecting target integration properties flags..."
+        echo "Injecting mandatory AndroidX architecture properties flags..."
         echo "android.useAndroidX=true" >> gradle.properties
         echo "android.enableJetifier=true" >> gradle.properties
         
-        echo "Patching system configuration limits..."
+        echo "Patching system configuration limits inside manifest files..."
         find . -name "AndroidManifest.xml" -exec sed -i 's/mediaProcessing/mediaPlayback/g' {} +
 
-        echo "Compiling hardware deployment binaries..."
-        ./gradlew assembleDebug --no-daemon || ./gradlew assemble --no-daemon
+        echo "Ensuring the baseline Gradle compilation compiler wrapper tools are ready..."
+        sudo apt-get update && sudo apt-get install -y gradle
+        if [ ! -f "./gradlew" ]; then
+          gradle wrapper --gradle-version 8.4
+        fi
+        chmod +x gradlew
+
+        echo "Executing explicit hardware deployment binaries compilation..."
+        # Force a direct layout-safe compilation task execution bypassing structural empty wrappers
+        ./gradlew assembleDebug --no-daemon || ./gradlew :app:assembleDebug --no-daemon || ./gradlew assemble --no-daemon
 
     - name: Find and Upload Finished APK Artifact
       uses: actions/upload-artifact@v4
