@@ -114,20 +114,19 @@ jobs:
         }
         EOF
 
-        echo "DYNAMIC FIX: Injecting standard backup themes and graphic layout placeholders..."
+        echo "DYNAMIC FIX: Injecting universal, library-independent theme definitions..."
         mkdir -p app/build/generated/res/custom/values
         mkdir -p app/build/generated/res/custom/mipmap
         
-        # Inject standard style definitions matching the values missing from your manifest
+        # TARGET FIX: Swapped unresolvable external Theme.AppCompat fallback for universal native android:Theme.Material
         cat << 'EOF' > app/build/generated/res/custom/values/styles.xml
         <?xml version="1.0" encoding="utf-8"?>
         <resources>
-            <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar" />
+            <style name="AppTheme" parent="android:Theme.Material.NoActionBar" />
             <style name="AppTheme.NoActionBarLaunch" parent="AppTheme" />
         </resources>
         EOF
 
-        # Inject blank pixel items to satisfy ic_launcher framework verification checks
         echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==" | base64 -d > app/build/generated/res/custom/mipmap/ic_launcher.png
         echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==" | base64 -d > app/build/generated/res/custom/mipmap/ic_launcher_round.png
 
