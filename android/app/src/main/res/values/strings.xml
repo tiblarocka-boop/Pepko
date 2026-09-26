@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Fatyliser</string>
+    <string name="title_activity_main">Fatyliser</string>
+    <string name="custom_url_scheme">com.fatyliser.eq</string>
+    <string name="channel_name">Audio Processing Engine</string>
+    <string name="channel_description">Active 32-band DynamicsProcessing system audio session equalizer</string>
+</resources>

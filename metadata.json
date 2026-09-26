@@ -1,0 +1,6 @@
+{
+  "name": "Fatyliser - 32-Band System Equalizer",
+  "description": "Ultra-low latency 32-band system-wide parametric equalizer with DynamicsProcessing engine, Wavelet-style audio session tracking, and modern Capacitor bridge.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
