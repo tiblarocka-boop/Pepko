@@ -27,10 +27,8 @@ jobs:
         fi
 
         echo "MANDATORY RE-BUILD: Injecting explicit base project files on the fly..."
-        # Force create a working settings configuration mapping directly to your files
         echo "rootProject.name = 'Pepko'" > settings.gradle
         
-        # Inject an official Android app platform build script directly into the workspace
         cat << 'EOF' > build.gradle
         buildscript {
             repositories {
@@ -91,7 +89,7 @@ jobs:
         }
         EOF
 
-        echo "Ensuring the official Gradle 8.4 compilation environment tools are ready..."
+        echo "Ensuring the modern Gradle environment tools are generated..."
         sudo apt-get update && sudo apt-get install -y gradle
         gradle wrapper --gradle-version 8.4
         chmod +x ./gradlew
@@ -103,7 +101,8 @@ jobs:
         echo "Patching system configuration limits inside manifest files..."
         find . -name "AndroidManifest.xml" -exec sed -i 's/mediaProcessing/mediaPlayback/g' {} +
 
-        echo "Executing explicit hardware deployment binaries compilation..."
+        echo "Executing explicit hardware deployment binaries compilation via wrapper 8.4..."
+        # TARGET FIX: Force compilation via the explicit modern local wrapper script execution dot-slash path
         ./gradlew assembleDebug --no-daemon
 
     - name: Find and Upload Finished APK Artifact
