@@ -48,12 +48,13 @@ jobs:
         find . -name "AndroidManifest.xml" -exec sed -i 's/mediaProcessing/mediaPlayback/g' {} \;
         
         echo "Applying file safety wrappers..."
-        find . -name "*.kt" -exec sed -i 's/\.enabled =/.enabled =/g' {} \;
-        find . -name "*.kt" -exec sed -i 's/effect\.enabled = true/try { effect.enabled = true } catch(e: Exception) {}/g' {} \;
-        find . -name "*.kt" -exec sed -i 's/it\.enabled = false/try { it.enabled = false } catch(e: Exception) {}/g' {} \;
+        # FIXED TERMINAL SYNTAX: Using '#' delimiters to cleanly patch path strings without sed conflicts
+        find . -name "*.kt" -exec sed -i 's#\.enabled =#.enabled =#g' {} \;
+        find . -name "*.kt" -exec sed -i 's#effect\.enabled = true#try { effect.enabled = true } catch(e: Exception) {}#g' {} \;
+        find . -name "*.kt" -exec sed -i 's#it\.enabled = false#try { it.enabled = false } catch(e: Exception) {}#g' {} \;
         
         echo "MANDATORY FIX: Forcing centralized multi-project app module structural linkage..."
-        # Create an official modern resolution settings map linking the inner app folder explicitly
+        # FIXED FLAG: Updated central dependency resolution mode to use FAIL_ON_PROJECT_REPOS
         cat << 'EOF' > settings.gradle
         pluginManagement {
             repositories {
@@ -63,7 +64,7 @@ jobs:
             }
         }
         dependencyResolutionManagement {
-            repositoriesMode.set(RepositoriesMode.PRESERVE_ON_USE)
+            repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
             repositories {
                 google()
                 mavenCentral()
