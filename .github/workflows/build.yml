@@ -45,14 +45,14 @@ jobs:
         echo "Patching manifest properties configuration limit..."
         find . -name "AndroidManifest.xml" -exec sed -i 's/mediaProcessing/mediaPlayback/g' {} +
         
-        # TARGET FIX: Dynamically generate gradlew wrapper files if AI Studio left them out
         if [ ! -f "./gradlew" ]; then
           echo "Local compiler wrapper missing. Re-generating fresh binaries..."
           gradle wrapper --gradle-version 8.4
         fi
         
         chmod +x gradlew
-        ./gradlew assembleDebug --no-daemon
+        # TARGET FIX: Run the global standalone lifecycle command task to build the project without guessing custom folder names
+        ./gradlew assemble --no-daemon
 
     - name: Find and Upload Finished APK Artifact
       uses: actions/upload-artifact@v4
@@ -61,3 +61,4 @@ jobs:
         path: |
           **/build/outputs/apk/debug/*.apk
           **/build/outputs/apk/release/*.apk
+          **/build/outputs/apk/*/*.apk
