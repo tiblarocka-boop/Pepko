@@ -33,16 +33,23 @@ jobs:
         echo "Patching system configuration limits..."
         find . -name "AndroidManifest.xml" -exec sed -i 's/mediaProcessing/mediaPlayback/g' {} +
 
-        echo "Forcing sub-project module compilation..."
-        if [ -f "./gradlew" ]; then
-          chmod +x gradlew
-          # TARGET FIX: Direct assemble command explicitly onto the inner app module sub-project
-          ./gradlew :app:assembleDebug --no-daemon
-        else
-          sudo apt-get update && sudo apt-get install -y gradle
+        echo "Ensuring Gradle wrapper tools are built..."
+        sudo apt-get update && sudo apt-get install -y gradle
+        if [ ! -f "./gradlew" ]; then
           gradle wrapper --gradle-version 8.4
-          chmod +x gradlew
-          ./gradlew :app:assembleDebug --no-daemon
+        fi
+        chmod +x gradlew
+
+        echo "Dynamically determining the correct module task name..."
+        # Scan settings.gradle to extract the exact project module name used by AI Studio
+        MODULE_NAME=$(grep -o "include ':[^']*'" settings.gradle | head -n 1 | sed "s/include '://;s/'//")
+        
+        if [ -z "$MODULE_NAME" ]; then
+          echo "No explicit sub-project module found. Falling back to global execution..."
+          ./gradlew assembleDebug --no-daemon
+        else
+          echo "Found active project module: $MODULE_NAME"
+          ./gradlew :$MODULE_NAME:assembleDebug --no-daemon
         fi
 
     - name: Find and Upload Finished APK Artifact
