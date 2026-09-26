@@ -45,12 +45,13 @@ jobs:
         echo "android.enableJetifier=true" >> gradle.properties
         
         echo "Patching manifest properties configuration limit..."
-        find . -name "AndroidManifest.xml" -exec sed -i 's/mediaProcessing/mediaPlayback/g' {} +
+        find . -name "AndroidManifest.xml" -exec sed -i 's/mediaProcessing/mediaPlayback/g' {} \;
         
-        # FIXED EXCEPTION OVERRIDE: Prevent old C++ configuration validation crashes
-        find . -name "*.kt" -exec sed -i 's/\.enabled =/.enabled =/g' {} +
-        find . -name "*.kt" -exec sed -i 's/effect\.enabled = true/try { effect.enabled = true } catch(e: Exception) {}/g' {} +
-        find . -name "*.kt" -exec sed -i 's/it\.enabled = false/try { it.enabled = false } catch(e: Exception) {}/g' {} +
+        echo "Applying file safety wrappers..."
+        # FIXED TERMINAL SYNTAX: Replaced '+' with '\;' to process files without terminal conflicts
+        find . -name "*.kt" -exec sed -i 's/\.enabled =/.enabled =/g' {} \;
+        find . -name "*.kt" -exec sed -i 's/effect\.enabled = true/try { effect.enabled = true } catch(e: Exception) {}/g' {} \;
+        find . -name "*.kt" -exec sed -i 's/it\.enabled = false/try { it.enabled = false } catch(e: Exception) {}/g' {} \;
         
         if [ ! -f "./gradlew" ]; then
           echo "Local compiler wrapper missing. Re-generating fresh binaries..."
@@ -58,7 +59,6 @@ jobs:
         fi
         
         chmod +x gradlew
-        # Run the official multi-project application wrapper execution directly via the inner app module configuration
         ./gradlew :app:assembleDebug --no-daemon || ./gradlew assembleDebug --no-daemon || ./gradlew assemble --no-daemon
 
     - name: Find and Upload Finished APK Artifact
