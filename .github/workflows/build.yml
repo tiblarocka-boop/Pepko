@@ -19,30 +19,41 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Multi-Project Target Build
+    - name: Deep Scan and Build Android Project
       run: |
-        echo "Locating the exact Android source path..."
-        if [ -d "./android" ]; then
-          cd ./android
+        echo "Combing through repository to find where build.gradle or settings.gradle is hidden..."
+        # Find the true internal project folder path automatically
+        REAL_PROJECT_DIR=$(find . -name "build.gradle" -o -name "build.gradle.kts" -o -name "settings.gradle" | head -n 1 | xargs -r dirname)
+        
+        if [ -z "$REAL_PROJECT_DIR" ]; then
+          echo "No custom project directories detected. Defaulting to root folder path..."
+          REAL_PROJECT_DIR="."
         fi
+        
+        echo "Target directory successfully located at: $REAL_PROJECT_DIR"
+        cd "$REAL_PROJECT_DIR"
 
-        echo "Injecting required deployment flags..."
+        echo "Injecting required deployment configuration flags..."
         echo "android.useAndroidX=true" >> gradle.properties
         echo "android.enableJetifier=true" >> gradle.properties
         
-        echo "Patching system configuration limits..."
+        echo "Patching manifest properties mismatch..."
         find . -name "AndroidManifest.xml" -exec sed -i 's/mediaProcessing/mediaPlayback/g' {} +
 
-        echo "Ensuring Gradle wrapper tools are built..."
+        echo "Ensuring Gradle wrapper execution tools are built..."
         sudo apt-get update && sudo apt-get install -y gradle
         if [ ! -f "./gradlew" ]; then
           gradle wrapper --gradle-version 8.4
         fi
         chmod +x gradlew
 
-        echo "Executing explicit global build compilation..."
-        # TARGET FIX: Run the baseline global build task to compile the standalone module assets cleanly
-        ./gradlew assemble --no-daemon
+        echo "Executing full module asset bundle assembly..."
+        # Check if an app sub-project exists, otherwise run global compilation
+        if grep -q "app" settings.gradle 2>/dev/null; then
+          ./gradlew :app:assembleDebug --no-daemon
+        else
+          ./gradlew assembleDebug --no-daemon || ./gradlew assemble --no-daemon
+        fi
 
     - name: Find and Upload Finished APK Artifact
       uses: actions/upload-artifact@v4
