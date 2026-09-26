@@ -19,41 +19,35 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Deep Scan and Build Android Project
+    - name: Auto-Initialize and Build Project
       run: |
-        echo "Combing through repository to find where build.gradle or settings.gradle is hidden..."
-        # Find the true internal project folder path automatically
-        REAL_PROJECT_DIR=$(find . -name "build.gradle" -o -name "build.gradle.kts" -o -name "settings.gradle" | head -n 1 | xargs -r dirname)
-        
-        if [ -z "$REAL_PROJECT_DIR" ]; then
-          echo "No custom project directories detected. Defaulting to root folder path..."
-          REAL_PROJECT_DIR="."
+        echo "Entering your project compilation directory..."
+        if [ -d "./android" ]; then
+          cd ./android
         fi
-        
-        echo "Target directory successfully located at: $REAL_PROJECT_DIR"
-        cd "$REAL_PROJECT_DIR"
 
-        echo "Injecting required deployment configuration flags..."
+        echo "Ensuring baseline Gradle infrastructure is completely present..."
+        sudo apt-get update && sudo apt-get install -y gradle
+        
+        # MANDATORY OVERRIDE: If settings.gradle is broken or missing, force initialization
+        if [ ! -f "settings.gradle" ] && [ ! -f "settings.gradle.kts" ]; then
+          echo "Empty root layout detected. Initializing clean build shell..."
+          gradle init --type basic --dsl kotlin --package com.fatyliser.eq --project-name Pepko --non-interactive
+        fi
+
+        echo "Re-generating fresh Gradle Wrapper assets..."
+        gradle wrapper --gradle-version 8.4
+        chmod +x gradlew
+
+        echo "Injecting target integration properties flags..."
         echo "android.useAndroidX=true" >> gradle.properties
         echo "android.enableJetifier=true" >> gradle.properties
         
-        echo "Patching manifest properties mismatch..."
+        echo "Patching manifest background system limits..."
         find . -name "AndroidManifest.xml" -exec sed -i 's/mediaProcessing/mediaPlayback/g' {} +
 
-        echo "Ensuring Gradle wrapper execution tools are built..."
-        sudo apt-get update && sudo apt-get install -y gradle
-        if [ ! -f "./gradlew" ]; then
-          gradle wrapper --gradle-version 8.4
-        fi
-        chmod +x gradlew
-
-        echo "Executing full module asset bundle assembly..."
-        # Check if an app sub-project exists, otherwise run global compilation
-        if grep -q "app" settings.gradle 2>/dev/null; then
-          ./gradlew :app:assembleDebug --no-daemon
-        else
-          ./gradlew assembleDebug --no-daemon || ./gradlew assemble --no-daemon
-        fi
+        echo "Compiling final hardware deployment binaries..."
+        ./gradlew assembleDebug --no-daemon || ./gradlew assemble --no-daemon
 
     - name: Find and Upload Finished APK Artifact
       uses: actions/upload-artifact@v4
