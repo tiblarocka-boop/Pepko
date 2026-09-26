@@ -19,41 +19,29 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Smart-Scan and Build Android Project
+    - name: Clean Build and Compile
       run: |
-        echo "Scanning folders for Android Gradle build configurations..."
-        
-        # Look for build configurations or fall back directly to the verified android directory
+        echo "Locating the exact Android source path..."
         if [ -d "./android" ]; then
-          TARGET_DIR="./android"
-        else
-          TARGET_DIR=$(find . -name "settings.gradle*" -o -name "build.gradle*" | head -n 1 | xargs -r dirname)
+          cd ./android
         fi
+
+        echo "Injecting required deployment flags..."
+        echo "android.useAndroidX=true" >> gradle.properties
+        echo "android.enableJetifier=true" >> gradle.properties
         
-        if [ -z "$TARGET_DIR" ] || [ "$TARGET_DIR" = "." ]; then
-          TARGET_DIR="."
-        fi
-        
-        echo "Target directory determined as: $TARGET_DIR"
-        
-        echo "Injecting mandatory AndroidX flags into properties..."
-        echo "android.useAndroidX=true" >> "$TARGET_DIR/gradlew.properties"
-        echo "android.useAndroidX=true" >> "$TARGET_DIR/gradle.properties"
-        
-        echo "Patching AndroidManifest foregroundServiceType version mapping mismatch..."
+        echo "Patching system configuration limits..."
         find . -name "AndroidManifest.xml" -exec sed -i 's/mediaProcessing/mediaPlayback/g' {} +
-        
-        cd "$TARGET_DIR"
-        
+
+        echo "Forcing build compilation fallback..."
         if [ -f "./gradlew" ]; then
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleDebug --no-daemon
         else
-          # Fallback if the raw compiler isn't built yet
           sudo apt-get update && sudo apt-get install -y gradle
           gradle wrapper --gradle-version 8.4
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleDebug --no-daemon
         fi
 
     - name: Find and Upload Finished APK Artifact
