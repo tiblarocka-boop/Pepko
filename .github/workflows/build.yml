@@ -54,8 +54,8 @@ jobs:
             }
         }
         dependencyResolutionManagement {
-            // FIXED PROPERTY NAME FLAG
-            repositoriesMode.set(RepositoriesMode.PRESERVE_ON_USE)
+            // TARGET FIX: Universal robust repository mode strategy to guarantee clean asset lookup
+            repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
             repositories {
                 google()
                 mavenCentral()
