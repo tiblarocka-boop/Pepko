@@ -19,14 +19,22 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Find, Patch and Build Android Project
+    - name: Smart-Scan and Build Android Project
       run: |
-        echo "Searching for the folder containing settings.gradle or build.gradle..."
-        TARGET_DIR=$(find . -name "settings.gradle" -o -name "settings.gradle.kts" | head -n 1 | xargs dirname)
+        echo "Scanning folders for Android Gradle build configurations..."
+        
+        # Look for build configurations or fall back directly to the verified android directory
+        if [ -d "./android" ]; then
+          TARGET_DIR="./android"
+        else
+          TARGET_DIR=$(find . -name "settings.gradle*" -o -name "build.gradle*" | head -n 1 | xargs -r dirname)
+        fi
         
         if [ -z "$TARGET_DIR" ] || [ "$TARGET_DIR" = "." ]; then
           TARGET_DIR="."
         fi
+        
+        echo "Target directory determined as: $TARGET_DIR"
         
         echo "Injecting mandatory AndroidX flags into properties..."
         echo "android.useAndroidX=true" >> "$TARGET_DIR/gradlew.properties"
@@ -35,14 +43,17 @@ jobs:
         echo "Patching AndroidManifest foregroundServiceType version mapping mismatch..."
         find . -name "AndroidManifest.xml" -exec sed -i 's/mediaProcessing/mediaPlayback/g' {} +
         
-        echo "Found Android project files inside subfolder: $TARGET_DIR"
         cd "$TARGET_DIR"
         
         if [ -f "./gradlew" ]; then
           chmod +x gradlew
           ./gradlew assembleDebug
         else
-          gradle assembleDebug
+          # Fallback if the raw compiler isn't built yet
+          sudo apt-get update && sudo apt-get install -y gradle
+          gradle wrapper --gradle-version 8.4
+          chmod +x gradlew
+          ./gradlew assembleDebug
         fi
 
     - name: Find and Upload Finished APK Artifact
@@ -52,4 +63,3 @@ jobs:
         path: |
           **/build/outputs/apk/debug/*.apk
           **/build/outputs/apk/release/*.apk
-
