@@ -100,6 +100,16 @@ jobs:
                 }
             }
 
+            // TARGET COMPILER FIX: Explicitly enforce Java 17 validation alignment across tasks
+            compileOptions {
+                sourceCompatibility = JavaVersion.VERSION_17
+                targetCompatibility = JavaVersion.VERSION_17
+            }
+            
+            kotlin {
+                jvmToolchain(17)
+            }
+
             buildTypes {
                 release {
                     minifyEnabled false
@@ -118,7 +128,6 @@ jobs:
         mkdir -p app/build/generated/res/custom/values
         mkdir -p app/build/generated/res/custom/mipmap
         
-        # TARGET FIX: Swapped unresolvable external Theme.AppCompat fallback for universal native android:Theme.Material
         cat << 'EOF' > app/build/generated/res/custom/values/styles.xml
         <?xml version="1.0" encoding="utf-8"?>
         <resources>
