@@ -18,11 +18,10 @@ jobs:
       with:
         node-version: '20'
 
-    - name: Run Standard Capacitor Web Package Setup
+    - name: Install Web & Capacitor Dependencies
       run: |
         npm install --legacy-peer-deps
-        npx cap sync android --inline
-      continue-on-error: true
+        npm install @capacitor/android@6.1.2 --legacy-peer-deps
 
     - name: Set up JDK 17
       uses: actions/setup-java@v4
@@ -35,24 +34,85 @@ jobs:
       with:
         gradle-version: '8.4'
 
-    - name: Compile Native Project Layout
+    - name: Compile Standalone Application
       run: |
-        cd android
-        
-        echo "android.useAndroidX=true" >> local.properties
-        echo "android.enableJetifier=true" >> local.properties
-        
-        echo "Patching manifest properties configuration limit..."
-        find . -name "AndroidManifest.xml" -exec sed -i 's/mediaProcessing/mediaPlayback/g' {} +
-        
-        if [ ! -f "./gradlew" ]; then
-          echo "Local compiler wrapper missing. Re-generating fresh binaries..."
-          gradle wrapper --gradle-version 8.4
+        echo "Entering execution context..."
+        if [ -d "./android" ]; then
+          cd ./android
         fi
+
+        echo "MANDATORY WIPE: Purging old structural locks..."
+        rm -f settings.gradle settings.gradle.kts build.gradle build.gradle.kts
         
-        chmod +x gradlew
-        # TARGET FIX: Run the global standalone lifecycle command task to build the project without guessing custom folder names
-        ./gradlew assemble --no-daemon
+        echo "FIXED INJECTION: Generating official standalone Android build layout map..."
+        # Create settings file mapping the project directly as a standard standalone app module
+        echo "include ':'" > settings.gradle
+        echo "rootProject.name = 'Pepko'" >> settings.gradle
+        
+        cat << 'EOF' > build.gradle
+        buildscript {
+            repositories {
+                google()
+                mavenCentral()
+            }
+            dependencies {
+                classpath 'com.android.tools.build:gradle:8.2.2'
+                classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.22'
+            }
+        }
+
+        apply plugin: 'com.android.application'
+        apply plugin: 'kotlin-android'
+
+        repositories {
+            google()
+            mavenCentral()
+        }
+
+        android {
+            namespace 'com.fatyliser.eq'
+            compileSdk 34
+
+            defaultConfig {
+                applicationId 'com.fatyliser.eq'
+                minSdk 26
+                targetSdk 34
+                versionCode 1
+                versionName "1.0"
+            }
+
+            sourceSets {
+                main {
+                    manifest.srcFile "app/src/main/AndroidManifest.xml"
+                    res.srcDirs = ["app/src/main/res"]
+                    assets.srcDirs = ["app/src/main/assets"]
+                    java.srcDirs = ["app/src/main/java"]
+                }
+            }
+
+            buildTypes {
+                release {
+                    minifyEnabled false
+                }
+            }
+        }
+
+        dependencies {
+            implementation 'androidx.core:core-ktx:1.12.0'
+            implementation 'androidx.appcompat:androidx.appcompat:1.6.1'
+            implementation fileTree(dir: '../node_modules/@capacitor/android/capacitor-android', include: ['*.aar', '*.jar'])
+        }
+        EOF
+
+        echo "Injecting target integration properties flags..."
+        echo "android.useAndroidX=true" >> gradle.properties
+        echo "android.enableJetifier=true" >> gradle.properties
+        
+        echo "Patching system configuration limits inside manifest files..."
+        find . -name "AndroidManifest.xml" -exec sed -i 's/mediaProcessing/mediaPlayback/g' {} +
+
+        echo "Executing explicit hardware deployment binaries compilation..."
+        gradle assembleDebug --no-daemon
 
     - name: Find and Upload Finished APK Artifact
       uses: actions/upload-artifact@v4
@@ -61,4 +121,3 @@ jobs:
         path: |
           **/build/outputs/apk/debug/*.apk
           **/build/outputs/apk/release/*.apk
-          **/build/outputs/apk/*/*.apk
