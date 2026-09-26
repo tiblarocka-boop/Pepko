@@ -40,17 +40,9 @@ jobs:
         fi
         chmod +x gradlew
 
-        echo "Dynamically determining the correct module task name..."
-        # Scan settings.gradle to extract the exact project module name used by AI Studio
-        MODULE_NAME=$(grep -o "include ':[^']*'" settings.gradle | head -n 1 | sed "s/include '://;s/'//")
-        
-        if [ -z "$MODULE_NAME" ]; then
-          echo "No explicit sub-project module found. Falling back to global execution..."
-          ./gradlew assembleDebug --no-daemon
-        else
-          echo "Found active project module: $MODULE_NAME"
-          ./gradlew :$MODULE_NAME:assembleDebug --no-daemon
-        fi
+        echo "Executing explicit global build compilation..."
+        # TARGET FIX: Run the baseline global build task to compile the standalone module assets cleanly
+        ./gradlew assemble --no-daemon
 
     - name: Find and Upload Finished APK Artifact
       uses: actions/upload-artifact@v4
@@ -59,3 +51,4 @@ jobs:
         path: |
           **/build/outputs/apk/debug/*.apk
           **/build/outputs/apk/release/*.apk
+          **/build/outputs/apk/*/*.apk
