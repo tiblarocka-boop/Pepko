@@ -37,7 +37,6 @@ jobs:
 
     - name: Compile Native Project Layout
       run: |
-        # Target the exact project directory exported by AI Studio
         cd android
         
         echo "android.useAndroidX=true" >> local.properties
@@ -45,6 +44,12 @@ jobs:
         
         echo "Patching manifest properties configuration limit..."
         find . -name "AndroidManifest.xml" -exec sed -i 's/mediaProcessing/mediaPlayback/g' {} +
+        
+        # TARGET FIX: Dynamically generate gradlew wrapper files if AI Studio left them out
+        if [ ! -f "./gradlew" ]; then
+          echo "Local compiler wrapper missing. Re-generating fresh binaries..."
+          gradle wrapper --gradle-version 8.4
+        fi
         
         chmod +x gradlew
         ./gradlew assembleDebug --no-daemon
